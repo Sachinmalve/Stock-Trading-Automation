@@ -33,6 +33,15 @@ kws.connect()
 
 kws.subscribe(kws.get_insturment_by_symbol('NSE','Nifty Bank'  ), LiveFeedType.Maket_DATA  )
 
+
+symbol='BANKNIFTY'
+spot_instrument=get_instrument_for_fno(symbol).iloc[0]['token']
+ltpInfo=kws.ltpData('NSE', symbol, spot_instrument)
+indexltp=ltpInfo['data']['ltp']
+
+ATMStrike=math.ceil(indexltp/100)*100
+
+
 bn_call = kws.get_instrument_for_fno(symbol = 'BANKNIFTY', expiry_date=datetime.date(2022, 2, 24), is_fut=False, strike=ATMStrike + 200, is_CE = True)
 bn_put = kws.get_instrument_for_fno(symbol = 'BANKNIFTY', expiry_date=datetime.date(2022, 2, 24), is_fut=False, strike=ATMStrike - 200, is_CE = False)
 Search for symbols
@@ -49,10 +58,28 @@ def place_order(transaction_type,symbol) :
                       product_type=ProductType.Delivery,
                       price=0.0,
                       trigger_price=None,
-                      stop_loss= .20,
                       square_off=None,
                       trailing_sl=None,
                       is_amo=False)
+
+#Stop loss 
+Stop_loss=0.2 * price 
+
+sl_rem=ltp-price
+
+if sl_rem >= Stop_loss                       #if stoploss will hit we will buy
+    def place_order(transaction_type, symbol):
+        qty = int(symbol.lot_size)
+        res = kws.place_order(transaction_type=TransactionType.Buy,
+                              instrument=symbol,
+                              quantity=qty,
+                              order_type=OrderType.Market,
+                              product_type=ProductType.Delivery,
+                              price=0.0,
+                              trigger_price=None,
+                              square_off=None,
+                              trailing_sl=None,
+                              is_amo=False)
 
 print (res)
 place_order(TransactionType.Sell,ce_strike)
